@@ -56,6 +56,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .grupo-title{font-size:14px;font-weight:700;line-height:1.3;margin-bottom:2px}
 .grupo-sub{font-size:11px;color:#c084fc;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
 .larrow{font-size:18px;color:#f5a623;flex-shrink:0}
+.lcard-custom{display:flex;align-items:center;gap:13px;background:rgba(245,166,35,0.15);border:1.5px solid rgba(245,166,35,0.45);border-radius:16px;padding:13px 15px;margin-bottom:11px;text-decoration:none;color:#fff;transition:all .2s}.lcard-custom:hover{background:rgba(245,166,35,0.25);border-color:rgba(245,166,35,0.7);transform:translateY(-2px)}.lcard-custom:active{transform:scale(.98)}.custom-icon{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#f5a623,#e8920a);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:22px}.custom-info{flex:1;min-width:0}.custom-title{font-size:14px;font-weight:700;line-height:1.3;margin-bottom:2px}.custom-sub{font-size:11px;color:#f5a623;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
 .vis{position:fixed;bottom:14px;right:14px;background:rgba(0,0,0,0.82);border:1px solid rgba(245,166,35,0.3);border-radius:10px;padding:6px 10px;font-size:11px;color:#f5a623;pointer-events:none;z-index:10}.vis-online{position:fixed;bottom:46px;right:14px;background:rgba(0,0,0,0.82);border:1px solid rgba(39,174,96,0.5);border-radius:10px;padding:6px 10px;font-size:11px;color:#2ecc71;pointer-events:none;z-index:10}
 #login{background:#0a0a0a;display:flex;align-items:center;justify-content:center;min-height:100vh}
 .lbox{background:#181818;border:1px solid rgba(245,166,35,0.18);border-radius:18px;padding:32px 28px;width:300px;text-align:center}
@@ -298,6 +299,28 @@ input:checked+.isl:before{transform:translateX(18px)}
       </div>
     </div>
     <div class="card">
+      <div class="ct">📲 Botões de contato &amp; comunidade</div>
+      <div id="adm-cl"></div>
+      <div class="iadd">
+        <div class="iadd-t">+ Adicionar novo botão</div>
+        <div class="g2">
+          <div class="fld"><label>Título</label><input type="text" id="cl-title" placeholder="💬 Texto do botão"></div>
+          <div class="fld"><label>URL / Link</label><input type="url" id="cl-url" placeholder="https://wa.me/55..."></div>
+          <div class="fld"><label>Subtítulo</label><input type="text" id="cl-sub" placeholder="Descrição embaixo →"></div>
+          <div class="fld"><label>Ícone (emoji)</label><input type="text" id="cl-icon" placeholder="💬" maxlength="4"></div>
+        </div>
+        <div class="fld"><label>Cor do botão</label>
+          <select id="cl-style" style="width:100%;padding:9px 11px;border:1.5px solid #e5e5e5;border-radius:8px;font-size:13px;background:#fafafa;color:#1a1a1a">
+            <option value="wpp">🟢 Verde (WhatsApp)</option>
+            <option value="group">🟣 Roxo (Comunidade/Grupo)</option>
+            <option value="custom">🟠 Laranja (Destaque)</option>
+          </select>
+        </div>
+        <button class="btn by" onclick="addCL()">+ Adicionar</button>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="ct">⚡ Links de produtos <span style="font-size:11px;color:#bbb;font-weight:400">(arraste ⠿ ou use ▲▼ para reordenar)</span></div>
       <div id="adm-links"></div>
       <div class="iadd">
@@ -350,6 +373,29 @@ input:checked+.isl:before{transform:translateX(18px)}
   </div>
 </div>
 <style>@keyframes popIn{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}</style>
+  </div>
+</div>
+
+<div class="mbg" id="clmodal">
+  <div class="modal">
+    <h3>✏️ Editar botão de contato</h3>
+    <div class="msec"><span class="mlbl">Título</span><input type="text" id="ecl-title" placeholder="💬 Texto do botão"></div>
+    <div class="msec"><span class="mlbl">URL / Link</span><input type="url" id="ecl-url" placeholder="https://wa.me/55..."></div>
+    <div class="msec"><span class="mlbl">Subtítulo</span><input type="text" id="ecl-sub" placeholder="Descrição embaixo →"></div>
+    <div class="g2">
+      <div class="msec"><span class="mlbl">Ícone (emoji)</span><input type="text" id="ecl-icon" maxlength="4" placeholder="💬"></div>
+      <div class="msec"><span class="mlbl">Cor do botão</span>
+        <select id="ecl-style" style="width:100%;padding:9px 11px;border:1.5px solid #e5e5e5;border-radius:8px;font-size:13px;background:#fafafa;color:#1a1a1a">
+          <option value="wpp">🟢 Verde (WhatsApp)</option>
+          <option value="group">🟣 Roxo (Comunidade/Grupo)</option>
+          <option value="custom">🟠 Laranja (Destaque)</option>
+        </select>
+      </div>
+    </div>
+    <div class="mact">
+      <button class="btn bw bsm" onclick="closeEditCL()">Cancelar</button>
+      <button class="btn by bsm" onclick="saveEditCL()">Salvar</button>
+    </div>
   </div>
 </div>
 
@@ -441,7 +487,7 @@ function getData(){if(_cache)return _cache;try{return JSON.parse(localStorage.ge
 function setData(d){_cache=d;try{localStorage.setItem('rd',JSON.stringify(d));}catch(e){}saveToCloud(d);}
 
 
-function dfl(){return{profile:{avatar:'',bgImage:'',bgOverlay:55,username:'@rodrigoalves.dicasdeobras',contactLabel:'📲 Contato & Comunidade',sectionLabel:'⚡ Produtos recomendados',bio:'🔨 Só ferramenta que eu uso de verdade 💰 Evite gastar errado na sua obra 👇 Clica e vê',urgency:'🔥 Ferramentas que EU uso na obra — sem enrolação',socials:{ig:'',yt:'',tt:'',fb:''}},links:[{id:1,title:'⚡ PARE DE DEIXAR PARAFUSO CAIR – USE ISSO',sub:'Ver na Shopee →',url:'https://s.shopee.com.br/5L7vf2I4F7',thumb:'',active:true,clicks:0,stars:0,sold:''},{id:2,title:'⚡ ALICATE CORTA TUDO (PARE DE ESTRAGAR FIO)',sub:'Ver na Shopee →',url:'https://s.shopee.com.br/5L7vWbpPMm',thumb:'',active:true,clicks:0,stars:0,sold:''},{id:3,title:'💰 ADITIVO QUE DEIXA O CONCRETO FORTE (SEM GASTAR MAIS)',sub:'Ver na Shopee →',url:'https://s.shopee.com.br/50V58KQayi',thumb:'',active:true,clicks:0,stars:0,sold:''},{id:4,title:'💰 PARE DE COMPRAR BROCA TODA HORA',sub:'Ver na Shopee →',url:'https://s.shopee.com.br/50V58TRUrl',thumb:'',active:true,clicks:0,stars:0,sold:''}],stats:{visitors:[],totalClicks:0,daily:{}},password:PASS};}
+function dfl(){return{profile:{avatar:'',bgImage:'',bgOverlay:55,username:'@rodrigoalves.dicasdeobras',contactLabel:'📲 Contato & Comunidade',sectionLabel:'⚡ Produtos recomendados',bio:'🔨 Só ferramenta que eu uso de verdade 💰 Evite gastar errado na sua obra 👇 Clica e vê',urgency:'🔥 Ferramentas que EU uso na obra — sem enrolação',socials:{ig:'',yt:'',tt:'',fb:''}},contactLinks:[{id:1,title:'💬 Fale comigo no WhatsApp',sub:'Tire dúvidas sobre qualquer produto →',url:'https://wa.me/5531984968882',icon:'💬',style:'wpp',active:true},{id:2,title:'⚡ Não Pague Caro em Ferramenta',sub:'Entre no grupo de ofertas — é grátis →',url:'https://chat.whatsapp.com/ByEcbT2Pf1ODUEUAXCIkhx',icon:'⚡',style:'group',active:true}],links:[{id:1,title:'⚡ PARE DE DEIXAR PARAFUSO CAIR – USE ISSO',sub:'Ver na Shopee →',url:'https://s.shopee.com.br/5L7vf2I4F7',thumb:'',active:true,clicks:0,stars:0,sold:''},{id:2,title:'⚡ ALICATE CORTA TUDO (PARE DE ESTRAGAR FIO)',sub:'Ver na Shopee →',url:'https://s.shopee.com.br/5L7vWbpPMm',thumb:'',active:true,clicks:0,stars:0,sold:''},{id:3,title:'💰 ADITIVO QUE DEIXA O CONCRETO FORTE (SEM GASTAR MAIS)',sub:'Ver na Shopee →',url:'https://s.shopee.com.br/50V58KQayi',thumb:'',active:true,clicks:0,stars:0,sold:''},{id:4,title:'💰 PARE DE COMPRAR BROCA TODA HORA',sub:'Ver na Shopee →',url:'https://s.shopee.com.br/50V58TRUrl',thumb:'',active:true,clicks:0,stars:0,sold:''}],stats:{visitors:[],totalClicks:0,daily:{}},password:PASS};}
 function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 function hFile(p,inp){var f=inp.files[0];if(!f)return;var mx=(p==='bg')?3:2;if(f.size>mx*1024*1024){alert('Imagem muito grande. Máx '+mx+'MB.');return;}var r=new FileReader();r.onload=function(ev){var v=ev.target.result;document.getElementById(p+'-val').value=v;showPrev(p,v,f.name,fmt(f.size));if(p==='ap'||p==='bg')autoSaveImg(p,v);};r.readAsDataURL(f);}
@@ -581,27 +627,31 @@ function renderPub(){
   var cl=document.getElementById('p-contactlbl');
   if(cl)cl.textContent=p.contactLabel||'📲 Contato & Comunidade';
 
-  // Contact buttons (WhatsApp + Group)
+  // Contact buttons (dynamic from data)
   var cw=document.getElementById('p-contact-links');
   if(cw){
-    var wnum='5531984968882';
-    var wmsg=encodeURIComponent('Olá Rodrigo! Vi seu site e tenho uma dúvida sobre um produto.');
+    var d2=getData();
+    var cls=(d2.contactLinks!==undefined)?d2.contactLinks:dfl().contactLinks;
     var wSvg='<svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>';
-    cw.innerHTML=
-      '<a class="lcard-wpp" href="https://wa.me/'+wnum+'?text='+wmsg+'" target="_blank" rel="noopener">'+
-        '<div class="wpp-icon">'+wSvg+'</div>'+
-        '<div class="wpp-info">'+
-          '<div class="wpp-title">💬 Fale comigo no WhatsApp</div>'+
-          '<div class="wpp-sub">Tire dúvidas sobre qualquer produto →</div>'+
-        '</div>'+
-      '</a>'+
-      '<a class="lcard-grupo" href="https://chat.whatsapp.com/ByEcbT2Pf1ODUEUAXCIkhx" target="_blank" rel="noopener">'+
-        '<div class="grupo-icon">⚡</div>'+
-        '<div class="grupo-info">'+
-          '<div class="grupo-title">⚡ Não Pague Caro em Ferramenta</div>'+
-          '<div class="grupo-sub">Entre no grupo de ofertas — é grátis →</div>'+
-        '</div>'+
-      '</a>';
+    cw.innerHTML=cls.filter(function(cl){return cl.active;}).map(function(cl){
+      var ic=esc(cl.icon||'🔗');
+      if(cl.style==='wpp'){
+        return'<a class="lcard-wpp" href="'+esc(cl.url)+'" target="_blank" rel="noopener">'+
+          '<div class="wpp-icon">'+wSvg+'</div>'+
+          '<div class="wpp-info"><div class="wpp-title">'+esc(cl.title)+'</div><div class="wpp-sub">'+esc(cl.sub)+'</div></div>'+
+          '<span class="wpp-arrow">→</span></a>';
+      }else if(cl.style==='group'){
+        return'<a class="lcard-grupo" href="'+esc(cl.url)+'" target="_blank" rel="noopener">'+
+          '<div class="grupo-icon">'+ic+'</div>'+
+          '<div class="grupo-info"><div class="grupo-title">'+esc(cl.title)+'</div><div class="grupo-sub">'+esc(cl.sub)+'</div></div>'+
+          '<span class="larrow">→</span></a>';
+      }else{
+        return'<a class="lcard-custom" href="'+esc(cl.url)+'" target="_blank" rel="noopener">'+
+          '<div class="custom-icon">'+ic+'</div>'+
+          '<div class="custom-info"><div class="custom-title">'+esc(cl.title)+'</div><div class="custom-sub">'+esc(cl.sub)+'</div></div>'+
+          '<span class="larrow">→</span></a>';
+      }
+    }).join('');
   }
 
   // Products section label
@@ -722,8 +772,86 @@ function renderAdm(){
     dp.max=today;
   }var d=getData(),p=d.profile;
   document.getElementById('sa').textContent=d.links.filter(function(l){return l.active;}).length;
-  renderAnalytics();document.getElementById('f-user').value=p.username||'';if(document.getElementById('f-contactlbl'))document.getElementById('f-contactlbl').value=p.contactLabel||'📲 Contato & Comunidade';document.getElementById('f-seclbl').value=p.sectionLabel||'⚡ Produtos recomendados';document.getElementById('f-bio').value=p.bio||'';document.getElementById('f-urg').value=p.urgency||'';document.getElementById('f-ig').value=(p.socials&&p.socials.ig)||'';document.getElementById('f-yt').value=(p.socials&&p.socials.yt)||'';document.getElementById('f-tt').value=(p.socials&&p.socials.tt)||'';document.getElementById('f-fb').value=(p.socials&&p.socials.fb)||'';clrImg('ap');if(p.avatar){showPrev('ap',p.avatar,p.avatar.startsWith('data:')?'Foto carregada':'URL','');document.getElementById('ap-val').value=p.avatar;}clrImg('bg');if(p.bgImage){showPrev('bg',p.bgImage,p.bgImage.startsWith('data:')?'Imagem carregada':'URL','');document.getElementById('bg-val').value=p.bgImage;}var ov=(p.bgOverlay!==undefined)?p.bgOverlay:55;document.getElementById('bg-ov').value=ov;document.getElementById('bg-ov-v').textContent=ov+'%';renderList();}
+  renderAnalytics();document.getElementById('f-user').value=p.username||'';if(document.getElementById('f-contactlbl'))document.getElementById('f-contactlbl').value=p.contactLabel||'📲 Contato & Comunidade';document.getElementById('f-seclbl').value=p.sectionLabel||'⚡ Produtos recomendados';document.getElementById('f-bio').value=p.bio||'';document.getElementById('f-urg').value=p.urgency||'';document.getElementById('f-ig').value=(p.socials&&p.socials.ig)||'';document.getElementById('f-yt').value=(p.socials&&p.socials.yt)||'';document.getElementById('f-tt').value=(p.socials&&p.socials.tt)||'';document.getElementById('f-fb').value=(p.socials&&p.socials.fb)||'';clrImg('ap');if(p.avatar){showPrev('ap',p.avatar,p.avatar.startsWith('data:')?'Foto carregada':'URL','');document.getElementById('ap-val').value=p.avatar;}clrImg('bg');if(p.bgImage){showPrev('bg',p.bgImage,p.bgImage.startsWith('data:')?'Imagem carregada':'URL','');document.getElementById('bg-val').value=p.bgImage;}var ov=(p.bgOverlay!==undefined)?p.bgOverlay:55;document.getElementById('bg-ov').value=ov;document.getElementById('bg-ov-v').textContent=ov+'%';renderList();renderContactList();}
 function renderList(){var d=getData();document.getElementById('adm-links').innerHTML=d.links.map(function(l,i){var th=l.thumb?'<img class="ithumb" src="'+esc(l.thumb)+'" onerror="this.style.display=\'none\'">':'<div class="ithumb-ph">📷</div>';var rp=(l.stars>0||l.sold)?'<div class="irp">⭐ '+(l.stars>0?l.stars:'-')+' '+(l.sold?'| '+l.sold+' vendidos':'')+'</div>':'';return'<div class="litem '+(l.active?'':'off')+'" draggable="true" ondragstart="ds(event,'+i+')" ondragover="dov(event,'+i+')" ondragleave="dl(event)" ondrop="ddp(event,'+i+')" ondragend="de(event)"><div class="itop"><span class="ihandle">⠿</span><span class="iname">'+esc(l.title)+'</span><span class="iclk">👆 '+(l.clicks||0)+'</span><label class="itog"><input type="checkbox" '+(l.active?'checked':'')+' onchange="togL('+i+',this.checked)"><span class="isl"></span></label></div><div class="ibot">'+th+'<div style="flex:1;min-width:0"><div class="iurl2">'+esc(l.url)+'</div>'+(l.sub?'<div class="isub">'+esc(l.sub)+'</div>':'')+rp+'</div><div class="litem-actions" style="display:flex;gap:5px;flex-shrink:0;opacity:1"><button class="btn bw bsm" onclick="moveLink('+i+',-1)" title="Subir" style="font-size:14px;padding:4px 7px">▲</button><button class="btn bw bsm" onclick="moveLink('+i+',1)" title="Descer" style="font-size:14px;padding:4px 7px">▼</button><button class="btn bw bsm" onclick="openEdit('+i+')">✏️</button><button class="btn br bsm" onclick="delLink('+i+')">🗑</button></div></div></div>';}).join('');}
+
+function renderContactList(){
+  var d=getData();
+  var cls=(d.contactLinks!==undefined)?d.contactLinks:dfl().contactLinks;
+  var styleLabel={wpp:'🟢 Verde',group:'🟣 Roxo',custom:'🟠 Laranja'};
+  document.getElementById('adm-cl').innerHTML=cls.map(function(cl,i){
+    return'<div class="litem '+(cl.active?'':'off')+'">'+
+      '<div class="itop">'+
+        '<span class="iname">'+esc(cl.icon||'🔗')+' '+esc(cl.title)+'</span>'+
+        '<label class="itog"><input type="checkbox" '+(cl.active?'checked':'')+' onchange="togCL('+i+',this.checked)"><span class="isl"></span></label>'+
+      '</div>'+
+      '<div class="ibot">'+
+        '<div class="ithumb-ph" style="font-size:22px">'+esc(cl.icon||'🔗')+'</div>'+
+        '<div style="flex:1;min-width:0">'+
+          '<div class="iurl2">'+esc(cl.url)+'</div>'+
+          '<div class="isub">'+(styleLabel[cl.style]||cl.style)+'</div>'+
+        '</div>'+
+        '<div style="display:flex;gap:5px;flex-shrink:0">'+
+          '<button class="btn bw bsm" onclick="openEditCL('+i+')">✏️</button>'+
+          '<button class="btn br bsm" onclick="delCL('+i+')">🗑</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+function togCL(idx,val){
+  saveFreshWithAction(function(fresh){
+    if(!fresh.contactLinks)fresh.contactLinks=JSON.parse(JSON.stringify(dfl().contactLinks));
+    if(fresh.contactLinks[idx])fresh.contactLinks[idx].active=val;
+    return fresh;
+  },function(){renderContactList();});
+}
+function addCL(){
+  var title=document.getElementById('cl-title').value.trim();
+  var url=document.getElementById('cl-url').value.trim();
+  if(!title||!url){alert('Título e URL são obrigatórios');return;}
+  var newCL={id:Date.now(),title:title,sub:document.getElementById('cl-sub').value.trim(),url:url,icon:document.getElementById('cl-icon').value.trim()||'🔗',style:document.getElementById('cl-style').value,active:true};
+  ['cl-title','cl-url','cl-sub','cl-icon'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('cl-style').value='wpp';
+  saveFreshWithAction(function(fresh){
+    if(!fresh.contactLinks)fresh.contactLinks=JSON.parse(JSON.stringify(dfl().contactLinks));
+    fresh.contactLinks.push(newCL);
+    return fresh;
+  },function(){renderContactList();});
+}
+function delCL(idx){
+  if(!confirm('Remover este botão?'))return;
+  saveFreshWithAction(function(fresh){
+    if(!fresh.contactLinks)fresh.contactLinks=JSON.parse(JSON.stringify(dfl().contactLinks));
+    fresh.contactLinks.splice(idx,1);
+    return fresh;
+  },function(){renderContactList();});
+}
+var editCLIdx=null;
+function openEditCL(idx){
+  editCLIdx=idx;
+  var d=getData();
+  var cls=(d.contactLinks!==undefined)?d.contactLinks:dfl().contactLinks;
+  var cl=cls[idx];
+  document.getElementById('ecl-title').value=cl.title||'';
+  document.getElementById('ecl-url').value=cl.url||'';
+  document.getElementById('ecl-sub').value=cl.sub||'';
+  document.getElementById('ecl-icon').value=cl.icon||'🔗';
+  document.getElementById('ecl-style').value=cl.style||'wpp';
+  document.getElementById('clmodal').classList.add('open');
+}
+function closeEditCL(){document.getElementById('clmodal').classList.remove('open');editCLIdx=null;}
+function saveEditCL(){
+  if(editCLIdx===null)return;
+  var updates={title:document.getElementById('ecl-title').value.trim(),url:document.getElementById('ecl-url').value.trim(),sub:document.getElementById('ecl-sub').value.trim(),icon:document.getElementById('ecl-icon').value.trim()||'🔗',style:document.getElementById('ecl-style').value};
+  var idx=editCLIdx;
+  closeEditCL();
+  saveFreshWithAction(function(fresh){
+    if(!fresh.contactLinks)fresh.contactLinks=JSON.parse(JSON.stringify(dfl().contactLinks));
+    if(fresh.contactLinks[idx])fresh.contactLinks[idx]=Object.assign({},fresh.contactLinks[idx],updates);
+    return fresh;
+  },function(){renderContactList();});
+}
 
 function ds(e,i){dragSrc=i;setTimeout(function(){e.target.classList.add('dragging');},0);}
 function dov(e,i){e.preventDefault();document.querySelectorAll('.litem').forEach(function(c,j){c.classList.toggle('over',j===i&&i!==dragSrc);});}
@@ -808,6 +936,7 @@ function saveEdit(){
   },function(){renderAdm();});
 }
 document.getElementById('emodal').addEventListener('click',function(ev){if(ev.target===this)closeEdit();});
+document.getElementById('clmodal').addEventListener('click',function(ev){if(ev.target===this)closeEditCL();});
 
 // ── REALTIME ONLINE COUNTER ────────────────────────────────
 var _onlineChannel = null;
