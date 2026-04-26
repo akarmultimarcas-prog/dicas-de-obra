@@ -249,6 +249,7 @@ input:checked+.isl:before{transform:translateX(18px)}
         <input type="file" id="ap-file" accept="image/*" onchange="hFile('ap',this)">
         <input type="url" class="iurlinp" id="ap-urli" placeholder="https://...jpg" oninput="hUrl('ap',this.value)">
         <input type="hidden" id="ap-val">
+        <input type="hidden" id="ap-cleared" value="0">
       </div>
       <div class="g2">
         <div class="fld"><label>Nome de usuário</label><input type="text" id="f-user" data-saveable="true"></div>
@@ -361,6 +362,11 @@ input:checked+.isl:before{transform:translateX(18px)}
     <div style="padding:0 0 28px">
   <button onclick="saveAll()" style="width:100%;padding:14px;background:#27ae60;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;transition:all .2s" onmouseover="this.style.background='#219a52'" onmouseout="this.style.background='#27ae60'">💾 Salvar alterações</button>
   <div style="text-align:center;font-size:11px;color:#bbb;margin-top:10px">Clique em salvar após fazer qualquer edição.</div>
+  <div style="display:flex;gap:8px;margin-top:12px">
+    <button onclick="exportBackup()" style="flex:1;padding:10px;background:#2c3e50;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">⬇️ Exportar backup</button>
+    <label style="flex:1;padding:10px;background:#7f8c8d;color:#fff;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;text-align:center">⬆️ Importar backup<input type="file" accept=".json" onchange="importBackup(this)" style="display:none"></label>
+  </div>
+  <div style="text-align:center;font-size:11px;color:#e74c3c;margin-top:6px;font-weight:600">⚠️ Exporte backup toda vez antes de fazer alterações grandes.</div>
 </div>
 
 <!-- POPUP SALVO -->
@@ -486,6 +492,45 @@ function chgPass(){
 function getData(){if(_cache)return _cache;try{return JSON.parse(localStorage.getItem('rd')||'null')||dfl();}catch(e){return dfl();}}
 function setData(d){_cache=d;try{localStorage.setItem('rd',JSON.stringify(d));}catch(e){}saveToCloud(d);}
 
+function saveLocalBackup(d){try{localStorage.setItem('rd_bak',JSON.stringify({data:d,ts:new Date().toISOString()}));}catch(e){}}
+
+function mergeWithLocal(cloudData){
+  var local=null;
+  try{local=_cache||JSON.parse(localStorage.getItem('rd')||'null');}catch(e){}
+  if(!local)return cloudData;
+  if(!cloudData.profile)cloudData.profile={};
+  var cl=(cloudData.links||[]).length,ll=(local.links||[]).length;
+  if(ll>cl){cloudData.links=JSON.parse(JSON.stringify(local.links));}
+  if(!cloudData.profile.avatar&&local.profile&&local.profile.avatar){cloudData.profile.avatar=local.profile.avatar;}
+  if(!cloudData.profile.bgImage&&local.profile&&local.profile.bgImage){cloudData.profile.bgImage=local.profile.bgImage;}
+  return cloudData;
+}
+
+function exportBackup(){
+  var d=getData();
+  var blob=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='dicas-de-obra-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();URL.revokeObjectURL(a.href);
+}
+
+function importBackup(input){
+  var f=input.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(e){
+    try{
+      var d=JSON.parse(e.target.result);
+      if(!d.links||!d.profile){alert('Arquivo inválido.');return;}
+      if(!confirm('Isso vai SUBSTITUIR todos os dados atuais pelos do backup. Tem certeza?'))return;
+      saveLocalBackup(getData());
+      setData(d);
+      alert('Backup restaurado com sucesso! A página vai recarregar.');
+      location.reload();
+    }catch(ex){alert('Erro ao ler o arquivo: '+ex.message);}
+  };
+  r.readAsText(f);
+}
+
 
 function dfl(){return{profile:{avatar:'',bgImage:'',bgOverlay:55,username:'@rodrigoalves.dicasdeobras',contactLabel:'📲 Contato & Comunidade',sectionLabel:'⚡ Produtos recomendados',bio:'🔨 Só ferramenta que eu uso de verdade 💰 Evite gastar errado na sua obra 👇 Clica e vê',urgency:'🔥 Ferramentas que EU uso na obra — sem enrolação',socials:{ig:'',yt:'',tt:'',fb:''}},contactLinks:[{id:1,title:'💬 Fale comigo no WhatsApp',sub:'Tire dúvidas sobre qualquer produto →',url:'https://wa.me/5531984968882',icon:'💬',style:'wpp',active:true},{id:2,title:'⚡ Não Pague Caro em Ferramenta',sub:'Entre no grupo de ofertas — é grátis →',url:'https://chat.whatsapp.com/ByEcbT2Pf1ODUEUAXCIkhx',icon:'⚡',style:'group',active:true}],links:[{id:1,title:'⚡ PARE DE DEIXAR PARAFUSO CAIR – USE ISSO',sub:'Ver na Shopee →',url:'https://s.shopee.com.br/5L7vf2I4F7',thumb:'',active:true,clicks:0,stars:0,sold:''},{id:2,title:'⚡ ALICATE CORTA TUDO (PARE DE ESTRAGAR FIO)',sub:'Ver na Shopee →',url:'https://s.shopee.com.br/5L7vWbpPMm',thumb:'',active:true,clicks:0,stars:0,sold:''},{id:3,title:'💰 ADITIVO QUE DEIXA O CONCRETO FORTE (SEM GASTAR MAIS)',sub:'Ver na Shopee →',url:'https://s.shopee.com.br/50V58KQayi',thumb:'',active:true,clicks:0,stars:0,sold:''},{id:4,title:'💰 PARE DE COMPRAR BROCA TODA HORA',sub:'Ver na Shopee →',url:'https://s.shopee.com.br/50V58TRUrl',thumb:'',active:true,clicks:0,stars:0,sold:''}],stats:{visitors:[],totalClicks:0,daily:{}},password:PASS};}
 function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
@@ -493,7 +538,7 @@ function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/<
 function hFile(p,inp){var f=inp.files[0];if(!f)return;var mx=(p==='bg')?3:2;if(f.size>mx*1024*1024){alert('Imagem muito grande. Máx '+mx+'MB.');return;}var r=new FileReader();r.onload=function(ev){var v=ev.target.result;document.getElementById(p+'-val').value=v;showPrev(p,v,f.name,fmt(f.size));if(p==='ap'||p==='bg')autoSaveImg(p,v);};r.readAsDataURL(f);}
 function hUrl(p,url){document.getElementById(p+'-val').value=url;if(url){showPrev(p,url,'URL da imagem','');if(p==='ap'||p==='bg')autoSaveImg(p,url);}else clrImg(p);}
 function showPrev(p,src,name,size){var pr=document.getElementById(p+'-prev'),ph=document.getElementById(p+'-ph'),cl=document.getElementById(p+'-clr');pr.src=src;pr.classList.add('show');ph.classList.add('hide');document.getElementById(p+'-fn').textContent=name;var fs=document.getElementById(p+'-fs');if(fs)fs.textContent=size;if(cl)cl.style.display='inline-flex';}
-function clrImg(p){document.getElementById(p+'-val').value='';var pr=document.getElementById(p+'-prev');pr.src='';pr.classList.remove('show');document.getElementById(p+'-ph').classList.remove('hide');document.getElementById(p+'-fn').textContent=(p==='bg')?'Sem imagem de fundo':'Nenhuma imagem';var fs=document.getElementById(p+'-fs');if(fs)fs.textContent=(p==='bg')?'Até 3MB':'';var cl=document.getElementById(p+'-clr');if(cl)cl.style.display='none';var fi=document.getElementById(p+'-file');if(fi)fi.value='';var ui=document.getElementById(p+'-urli');if(ui){ui.value='';ui.classList.remove('show');}if(p==='ap'||p==='bg')autoSaveImg(p,'');}
+function clrImg(p){document.getElementById(p+'-val').value='';if(p==='ap'){var fl=document.getElementById('ap-cleared');if(fl)fl.value='1';}var pr=document.getElementById(p+'-prev');pr.src='';pr.classList.remove('show');document.getElementById(p+'-ph').classList.remove('hide');document.getElementById(p+'-fn').textContent=(p==='bg')?'Sem imagem de fundo':'Nenhuma imagem';var fs=document.getElementById(p+'-fs');if(fs)fs.textContent=(p==='bg')?'Até 3MB':'';var cl=document.getElementById(p+'-clr');if(cl)cl.style.display='none';var fi=document.getElementById(p+'-file');if(fi)fi.value='';var ui=document.getElementById(p+'-urli');if(ui){ui.value='';ui.classList.remove('show');}if(p==='ap'||p==='bg')autoSaveImg(p,'');}
 function tUrl(p){var el=document.getElementById(p+'-urli');el.classList.toggle('show');if(el.classList.contains('show'))el.focus();}
 function autoSaveImg(p,val){
   // Apenas atualiza preview visual — salva só ao clicar em Salvar
@@ -774,6 +819,7 @@ function renderAdm(){
     dp.max=today;
   }var d=getData(),p=d.profile;
   document.getElementById('sa').textContent=d.links.filter(function(l){return l.active;}).length;
+  var _apc=document.getElementById('ap-cleared');if(_apc)_apc.value='0';
   renderAnalytics();document.getElementById('f-user').value=p.username||'';if(document.getElementById('f-contactlbl'))document.getElementById('f-contactlbl').value=p.contactLabel||'📲 Contato & Comunidade';document.getElementById('f-seclbl').value=p.sectionLabel||'⚡ Produtos recomendados';document.getElementById('f-bio').value=p.bio||'';document.getElementById('f-urg').value=p.urgency||'';document.getElementById('f-ig').value=(p.socials&&p.socials.ig)||'';document.getElementById('f-yt').value=(p.socials&&p.socials.yt)||'';document.getElementById('f-tt').value=(p.socials&&p.socials.tt)||'';document.getElementById('f-fb').value=(p.socials&&p.socials.fb)||'';clrImg('ap');if(p.avatar){showPrev('ap',p.avatar,p.avatar.startsWith('data:')?'Foto carregada':'URL','');document.getElementById('ap-val').value=p.avatar;}clrImg('bg');if(p.bgImage){showPrev('bg',p.bgImage,p.bgImage.startsWith('data:')?'Imagem carregada':'URL','');document.getElementById('bg-val').value=p.bgImage;}var ov=(p.bgOverlay!==undefined)?p.bgOverlay:55;document.getElementById('bg-ov').value=ov;document.getElementById('bg-ov-v').textContent=ov+'%';renderList();renderContactList();}
 function renderList(){var d=getData();document.getElementById('adm-links').innerHTML=d.links.map(function(l,i){var th=l.thumb?'<img class="ithumb" src="'+esc(l.thumb)+'" onerror="this.style.display=\'none\'">':'<div class="ithumb-ph">📷</div>';var rp=(l.stars>0||l.sold)?'<div class="irp">⭐ '+(l.stars>0?l.stars:'-')+' '+(l.sold?'| '+l.sold+' vendidos':'')+'</div>':'';return'<div class="litem '+(l.active?'':'off')+'" draggable="true" ondragstart="ds(event,'+i+')" ondragover="dov(event,'+i+')" ondragleave="dl(event)" ondrop="ddp(event,'+i+')" ondragend="de(event)"><div class="itop"><span class="ihandle">⠿</span><span class="iname">'+esc(l.title)+'</span><span class="iclk">👆 '+(l.clicks||0)+'</span><label class="itog"><input type="checkbox" '+(l.active?'checked':'')+' onchange="togL('+i+',this.checked)"><span class="isl"></span></label></div><div class="ibot">'+th+'<div style="flex:1;min-width:0"><div class="iurl2">'+esc(l.url)+'</div>'+(l.sub?'<div class="isub">'+esc(l.sub)+'</div>':'')+rp+'</div><div class="litem-actions" style="display:flex;gap:5px;flex-shrink:0;opacity:1"><button class="btn bw bsm" onclick="moveLink('+i+',-1)" title="Subir" style="font-size:14px;padding:4px 7px">▲</button><button class="btn bw bsm" onclick="moveLink('+i+',1)" title="Descer" style="font-size:14px;padding:4px 7px">▼</button><button class="btn bw bsm" onclick="openEdit('+i+')">✏️</button><button class="btn br bsm" onclick="delLink('+i+')">🗑</button></div></div></div>';}).join('');}
 
@@ -1044,13 +1090,14 @@ function saveAll(){
   var fyt=document.getElementById('f-yt');if(fyt)d.profile.socials.yt=fyt.value.trim();
   var ftt=document.getElementById('f-tt');if(ftt)d.profile.socials.tt=ftt.value.trim();
   var ffb=document.getElementById('f-fb');if(ffb)d.profile.socials.fb=ffb.value.trim();
-  // Foto do perfil
-  var apv=document.getElementById('ap-val');if(apv&&apv.value)d.profile.avatar=apv.value;
+  // Foto do perfil — só altera se novo valor ou remoção explícita
+  var apv=document.getElementById('ap-val');
+  var apCleared=document.getElementById('ap-cleared');
+  if(apv&&apv.value)d.profile.avatar=apv.value;
+  else if(apv&&apv.value===''&&apCleared&&apCleared.value==='1')d.profile.avatar='';
   // Fundo da página
   var bgv=document.getElementById('bg-val');if(bgv&&bgv.value)d.profile.bgImage=bgv.value;
-  // Se limpou o fundo (campo vazio mas foi clicado remover)
   if(bgv&&bgv.value==='')d.profile.bgImage='';
-  if(apv&&apv.value==='')d.profile.avatar='';
   // Escurecimento do fundo
   var bgov=document.getElementById('bg-ov');if(bgov)d.profile.bgOverlay=parseInt(bgov.value);
   // Senha
@@ -1087,7 +1134,8 @@ async function loadFromCloud(){
     } else {
       var rows=await res.json();
       if(rows&&rows[0]&&rows[0].data&&Object.keys(rows[0].data).length>0){
-        _cache=rows[0].data;
+        var cloudData=mergeWithLocal(rows[0].data);
+        _cache=cloudData;
         try{localStorage.setItem('rd',JSON.stringify(_cache));}catch(e){}
       } else {
         _cache=getData();
@@ -1116,8 +1164,9 @@ async function saveFreshWithAction(actionFn,callback){
     var rows=await res.json();
     var fresh=null;
     if(rows&&rows[0]&&rows[0].data&&Object.keys(rows[0].data).length>0){
-      fresh=JSON.parse(JSON.stringify(rows[0].data));
+      fresh=mergeWithLocal(JSON.parse(JSON.stringify(rows[0].data)));
     } else {fresh=getData();}
+    saveLocalBackup(fresh);
     fresh=actionFn(fresh);
     _cache=fresh;
     try{localStorage.setItem('rd',JSON.stringify(fresh));}catch(e){}
@@ -1140,7 +1189,7 @@ async function saveVisitorToCloud(sid){
     var rows=await res.json();
     var freshData=null;
     if(rows&&rows[0]&&rows[0].data&&Object.keys(rows[0].data).length>0){
-      freshData=rows[0].data;
+      freshData=mergeWithLocal(rows[0].data);
     } else {freshData=getData();}
     if(!freshData.stats)freshData.stats={visitors:[],totalClicks:0,daily:{}};
     if(!freshData.stats.visitors)freshData.stats.visitors=[];
@@ -1167,7 +1216,7 @@ async function saveClickToCloud(idx,callback){
     });
     var rows=await res.json();
     var freshData=null;
-    if(rows&&rows[0]&&rows[0].data&&Object.keys(rows[0].data).length>0){freshData=rows[0].data;}
+    if(rows&&rows[0]&&rows[0].data&&Object.keys(rows[0].data).length>0){freshData=mergeWithLocal(rows[0].data);}
     else{freshData=getData();}
     if(!freshData.links)freshData.links=[];
     if(freshData.links[idx])freshData.links[idx].clicks=(freshData.links[idx].clicks||0)+1;
