@@ -366,6 +366,10 @@ input:checked+.isl:before{transform:translateX(18px)}
     <button onclick="exportBackup()" style="flex:1;padding:10px;background:#2c3e50;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">⬇️ Exportar backup</button>
     <label style="flex:1;padding:10px;background:#7f8c8d;color:#fff;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;text-align:center">⬆️ Importar backup<input type="file" accept=".json" onchange="importBackup(this)" style="display:none"></label>
   </div>
+  <div style="margin-top:14px;padding:12px;background:#111;border-radius:10px;border:1px solid #333">
+    <div style="font-size:12px;font-weight:700;color:#f0c040;margin-bottom:8px">☁️ Backups na nuvem</div>
+    <div id="cloud-backups"><div style="color:#999;font-size:12px;text-align:center;padding:8px">Carregando...</div></div>
+  </div>
   <div style="text-align:center;font-size:11px;color:#e74c3c;margin-top:6px;font-weight:600">⚠️ Exporte backup toda vez antes de fazer alterações grandes.</div>
 </div>
 
@@ -508,10 +512,68 @@ function mergeWithLocal(cloudData){
 
 function exportBackup(){
   var d=getData();
+  // Salva local
   var blob=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download='dicas-de-obra-backup-'+new Date().toISOString().slice(0,10)+'.json';
   a.click();URL.revokeObjectURL(a.href);
+  // Salva na nuvem
+  saveCloudBackup(d);
+}
+
+async function saveCloudBackup(d){
+  try{
+    var count=(d.links||[]).length;
+    await fetch(SUPABASE_URL+'/rest/v1/site_backups',{
+      method:'POST',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify({data:d,produtos_count:count})
+    });
+    // mantém só os 10 mais recentes
+    var rows=await fetch(SUPABASE_URL+'/rest/v1/site_backups?select=id&order=created_at.desc',{
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
+    }).then(function(r){return r.json();});
+    if(rows.length>10){
+      var toDelete=rows.slice(10).map(function(r){return r.id;});
+      await fetch(SUPABASE_URL+'/rest/v1/site_backups?id=in.('+toDelete.join(',')+')',{
+        method:'DELETE',
+        headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
+      });
+    }
+    renderCloudBackups();
+  }catch(e){console.warn('Backup nuvem falhou:',e);}
+}
+
+async function renderCloudBackups(){
+  var el=document.getElementById('cloud-backups');if(!el)return;
+  try{
+    var rows=await fetch(SUPABASE_URL+'/rest/v1/site_backups?select=id,produtos_count,created_at&order=created_at.desc&limit=10',{
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
+    }).then(function(r){return r.json();});
+    if(!rows||!rows.length){el.innerHTML='<div style="color:#999;font-size:12px;text-align:center;padding:8px">Nenhum backup ainda. Clique em Exportar para criar o primeiro.</div>';return;}
+    el.innerHTML=rows.map(function(r){
+      var dt=new Date(r.created_at);
+      var fmt=dt.toLocaleDateString('pt-BR')+' '+dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:7px;background:#1a1a1a;margin-bottom:6px">'
+        +'<span style="font-size:12px;color:#ccc">'+fmt+' — <b style="color:#f0c040">'+r.produtos_count+' produtos</b></span>'
+        +'<button onclick="restoreCloudBackup('+r.id+')" style="padding:4px 12px;background:#c0392b;color:#fff;border:none;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer">Restaurar</button>'
+        +'</div>';
+    }).join('');
+  }catch(e){el.innerHTML='<div style="color:#e74c3c;font-size:12px">Erro ao carregar backups.</div>';}
+}
+
+async function restoreCloudBackup(id){
+  if(!confirm('Restaurar este backup? Os dados atuais serão substituídos.'))return;
+  try{
+    var row=await fetch(SUPABASE_URL+'/rest/v1/site_backups?id=eq.'+id+'&select=data',{
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
+    }).then(function(r){return r.json();});
+    if(!row||!row[0]||!row[0].data){alert('Backup não encontrado.');return;}
+    saveLocalBackup(getData());
+    setData(row[0].data);
+    alert('Backup restaurado! A página vai recarregar.');
+    location.reload();
+  }catch(e){alert('Erro ao restaurar: '+e.message);}
 }
 
 function importBackup(input){
@@ -587,10 +649,17 @@ function trackVis(){
     if(!dayVisited)d.stats.daily[today].visitors.push(sid);
     _cache=d;
     try{localStorage.setItem('rd',JSON.stringify(d));}catch(e){}
-    saveVisitorToCloud(sid);
+    scheduleSync();
   }
   var el=document.getElementById('p-vis');
   if(el)el.textContent=d.stats.visitors.length;
+}
+
+var _pendingSync=false;
+function scheduleSync(){
+  if(_pendingSync)return;
+  _pendingSync=true;
+  setTimeout(function(){_pendingSync=false;saveToCloud(getData());},30000);
 }
 
 function setSavingState(loading){
@@ -617,7 +686,8 @@ function trackClk(idx, callback){
   d.stats.totalClicks=(d.stats.totalClicks||0)+1;
   _cache=d;
   try{localStorage.setItem('rd',JSON.stringify(d));}catch(e){}
-  saveClickToCloud(idx, callback);
+  scheduleSync();
+  if(callback)callback();
 }
 
 function handleLinkClick(e, idx, url){
@@ -820,6 +890,7 @@ function renderAdm(){
   }var d=getData(),p=d.profile;
   document.getElementById('sa').textContent=d.links.filter(function(l){return l.active;}).length;
   var _apc=document.getElementById('ap-cleared');if(_apc)_apc.value='0';
+  renderCloudBackups();
   renderAnalytics();document.getElementById('f-user').value=p.username||'';if(document.getElementById('f-contactlbl'))document.getElementById('f-contactlbl').value=p.contactLabel||'📲 Contato & Comunidade';document.getElementById('f-seclbl').value=p.sectionLabel||'⚡ Produtos recomendados';document.getElementById('f-bio').value=p.bio||'';document.getElementById('f-urg').value=p.urgency||'';document.getElementById('f-ig').value=(p.socials&&p.socials.ig)||'';document.getElementById('f-yt').value=(p.socials&&p.socials.yt)||'';document.getElementById('f-tt').value=(p.socials&&p.socials.tt)||'';document.getElementById('f-fb').value=(p.socials&&p.socials.fb)||'';clrImg('ap');if(p.avatar){showPrev('ap',p.avatar,p.avatar.startsWith('data:')?'Foto carregada':'URL','');document.getElementById('ap-val').value=p.avatar;}clrImg('bg');if(p.bgImage){showPrev('bg',p.bgImage,p.bgImage.startsWith('data:')?'Imagem carregada':'URL','');document.getElementById('bg-val').value=p.bgImage;}var ov=(p.bgOverlay!==undefined)?p.bgOverlay:55;document.getElementById('bg-ov').value=ov;document.getElementById('bg-ov-v').textContent=ov+'%';renderList();renderContactList();}
 function renderList(){var d=getData();document.getElementById('adm-links').innerHTML=d.links.map(function(l,i){var th=l.thumb?'<img class="ithumb" src="'+esc(l.thumb)+'" onerror="this.style.display=\'none\'">':'<div class="ithumb-ph">📷</div>';var rp=(l.stars>0||l.sold)?'<div class="irp">⭐ '+(l.stars>0?l.stars:'-')+' '+(l.sold?'| '+l.sold+' vendidos':'')+'</div>':'';return'<div class="litem '+(l.active?'':'off')+'" draggable="true" ondragstart="ds(event,'+i+')" ondragover="dov(event,'+i+')" ondragleave="dl(event)" ondrop="ddp(event,'+i+')" ondragend="de(event)"><div class="itop"><span class="ihandle">⠿</span><span class="iname">'+esc(l.title)+'</span><span class="iclk">👆 '+(l.clicks||0)+'</span><label class="itog"><input type="checkbox" '+(l.active?'checked':'')+' onchange="togL('+i+',this.checked)"><span class="isl"></span></label></div><div class="ibot">'+th+'<div style="flex:1;min-width:0"><div class="iurl2">'+esc(l.url)+'</div>'+(l.sub?'<div class="isub">'+esc(l.sub)+'</div>':'')+rp+'</div><div class="litem-actions" style="display:flex;gap:5px;flex-shrink:0;opacity:1"><button class="btn bw bsm" onclick="moveLink('+i+',-1)" title="Subir" style="font-size:14px;padding:4px 7px">▲</button><button class="btn bw bsm" onclick="moveLink('+i+',1)" title="Descer" style="font-size:14px;padding:4px 7px">▼</button><button class="btn bw bsm" onclick="openEdit('+i+')">✏️</button><button class="btn br bsm" onclick="delLink('+i+')">🗑</button></div></div></div>';}).join('');}
 
@@ -1266,6 +1337,13 @@ document.getElementById('login').style.display='none';
 document.getElementById('adm').style.display='none';
 loadFromCloud();
 startOnlineTracking();
+window.addEventListener('beforeunload',function(){
+  var d=getData();
+  if(d&&navigator.sendBeacon){
+    var body=JSON.stringify({data:d,updated_at:new Date().toISOString()});
+    navigator.sendBeacon(SUPABASE_URL+'/rest/v1/site_data?id=eq.main',new Blob([body],{type:'application/json'}));
+  }
+});
 </script>
 </body>
 </html>
