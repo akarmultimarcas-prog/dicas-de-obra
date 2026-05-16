@@ -35,12 +35,9 @@ body::before{
 
 /* ── HERO ── */
 .hero{text-align:center;padding:44px 0 28px}
-.av-outer{
-  width:108px;height:108px;border-radius:50%;margin:0 auto 18px;
-  background:conic-gradient(from 0deg, var(--gold), var(--gold2), var(--gold), transparent 60%, transparent 80%, var(--gold));
-  padding:3px;animation:spin 8s linear infinite;
-}
-.av-inner{width:100%;height:100%;border-radius:50%;background:#070707;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.av-outer{width:116px;height:116px;border-radius:50%;margin:0 auto 18px;position:relative;display:flex;align-items:center;justify-content:center}
+.av-ring{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,var(--gold),var(--gold2),rgba(240,180,41,0.15) 55%,rgba(240,180,41,0.15) 75%,var(--gold));animation:spin 7s linear infinite}
+.av-inner{width:108px;height:108px;border-radius:50%;background:#070707;overflow:hidden;position:relative;z-index:1;display:flex;align-items:center;justify-content:center}
 .av-img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
 .av-ph{font-size:44px}
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
@@ -69,10 +66,11 @@ body::before{
 
 /* ── URGENCY BAR ── */
 .urgency-bar{
-  display:flex;align-items:center;justify-content:center;gap:8px;
+  display:flex;align-items:center;justify-content:center;
   background:linear-gradient(135deg,rgba(240,180,41,0.12),rgba(224,120,32,0.08));
   border:1px solid rgba(240,180,41,0.2);border-radius:12px;
-  padding:11px 16px;margin-bottom:20px;font-size:13px;font-weight:600;
+  padding:10px 14px;margin-bottom:20px;font-size:12px;font-weight:600;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   animation:urgPulse 3s ease-in-out infinite;
 }
 @keyframes urgPulse{0%,100%{border-color:rgba(240,180,41,0.2)}50%{border-color:rgba(240,180,41,0.45)}}
@@ -165,23 +163,7 @@ body::before{
 .rsold{font-size:11px;color:var(--muted)}
 .prc-cta{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.5px}
 
-/* ── FLOATING BADGES ── */
-.badge{
-  position:fixed;right:14px;z-index:100;
-  display:flex;align-items:center;gap:6px;
-  backdrop-filter:blur(16px);border-radius:20px;padding:6px 12px;
-  font-size:12px;font-weight:600;pointer-events:none;transition:all .3s;
-}
-.badge-vis{
-  bottom:16px;
-  background:rgba(240,180,41,0.12);border:1px solid rgba(240,180,41,0.25);color:var(--gold);
-}
-.badge-online{
-  bottom:52px;
-  background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.25);color:var(--green);
-  display:none;
-}
-.badge-dot{width:7px;height:7px;border-radius:50%;background:currentColor;animation:pulse 2s infinite}
+/* badges removidos — métricas no painel Site do DB */
 
 /* ── PIXEL TRACKER ── */
 .click-flash{
@@ -213,7 +195,7 @@ body::before{
 
   <!-- Hero -->
   <div class="hero fade-in">
-    <div class="av-outer"><div class="av-inner"><div id="p-avatar"></div></div></div>
+    <div class="av-outer"><div class="av-ring"></div><div class="av-inner"><div id="p-avatar"></div></div></div>
     <div class="brand-chip" id="p-company">ALICERCE EMPREENDIMENTOS</div>
     <div class="hero-name" id="p-name">@rodrigoalves.dicasdeobras</div>
     <div class="hero-bio" id="p-bio">Alicerce Empreendimentos • BH-MG 🏗️
@@ -237,15 +219,6 @@ Ferramentas testadas + conteúdo exclusivo gratuito 👇</div>
   <div id="p-prods"></div>
 </div>
 
-<!-- Badges flutuantes -->
-<div class="badge badge-vis">
-  <span class="badge-dot"></span>
-  <span id="p-vis">0</span> visitas
-</div>
-<div class="badge badge-online" id="badge-online">
-  <span class="badge-dot"></span>
-  <span id="p-online">0</span> online
-</div>
 
 <script>
 var SB='https://kiujvfcylgbjzyrorydg.supabase.co';
@@ -413,7 +386,7 @@ async function updOnline(on){try{var exp=new Date(Date.now()+30000).toISOString(
 async function fetchOnline(){try{await fetch(SB+'/rest/v1/online_users?expires_at=lt.'+new Date().toISOString(),{method:'DELETE',headers:{'apikey':SK,'Authorization':'Bearer '+SK}});var res=await fetch(SB+'/rest/v1/online_users?select=id',{headers:{'apikey':SK,'Authorization':'Bearer '+SK,'Prefer':'count=exact','Range':'0-0'}});var n=parseInt((res.headers.get('content-range')||'0/0').split('/')[1])||0;var el=document.getElementById('p-online');if(el)el.textContent=n;var b=document.getElementById('badge-online');if(b)b.style.display=n>0?'flex':'none';}catch(e){}}
 
 // INIT
-loadFromCloud();startOnline();
+loadFromCloud();
 window.addEventListener('beforeunload',function(){var d=getData();if(d&&navigator.sendBeacon){navigator.sendBeacon(SB+'/rest/v1/site_data?id=eq.main',new Blob([JSON.stringify({data:d,updated_at:new Date().toISOString()})],{type:'application/json'}));}});
 </script>
 </body>
