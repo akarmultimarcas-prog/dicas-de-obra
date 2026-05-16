@@ -164,6 +164,20 @@ input:checked+.isl:before{transform:translateX(18px)}
 .modal input:focus{outline:none;border-color:#f5a623;background:#fff}
 .mact{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
 @media(max-width:460px){.g2{grid-template-columns:1fr}.snum{font-size:21px}.bname{width:110px}}
+.ip-card{display:flex;align-items:stretch;background:rgba(255,255,255,0.06);border:1px solid rgba(99,102,241,0.25);border-radius:16px;overflow:hidden;margin-bottom:11px;cursor:pointer;transition:all .2s;color:#fff;position:relative}
+.ip-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(99,102,241,0.1),transparent);opacity:0;transition:.2s}
+.ip-card:hover::before{opacity:1}
+.ip-card:hover{border-color:rgba(99,102,241,0.5);transform:translateY(-2px)}
+.ip-card:active{transform:scale(.98)}
+.ip-thumb{width:90px;min-width:90px;height:90px;object-fit:cover;flex-shrink:0}
+.ip-thumb-ph{width:90px;min-width:90px;height:90px;background:linear-gradient(135deg,rgba(99,102,241,0.3),rgba(99,102,241,0.1));flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:28px}
+.ip-info{flex:1;min-width:0;padding:10px 12px;display:flex;flex-direction:column;justify-content:space-between}
+.ip-title{font-size:13px;font-weight:700;line-height:1.3;margin-bottom:3px}
+.ip-desc{font-size:11px;color:#bbb;line-height:1.4;margin-bottom:6px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.ip-footer{display:flex;align-items:center;justify-content:space-between}
+.ip-price{font-size:14px;font-weight:700;color:#a78bfa}
+.ip-price.free{color:#34d399;font-size:12px;background:rgba(52,211,153,0.15);padding:2px 8px;border-radius:20px}
+.ip-cta{font-size:11px;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:.5px}
 </style>
 </head>
 <body>
@@ -184,6 +198,8 @@ input:checked+.isl:before{transform:translateX(18px)}
     <div id="p-contact-links"></div>
     <div class="sec-lbl2" id="p-seclbl">⚡ Produtos recomendados</div>
     <div id="p-links"></div>
+    <div class="sec-lbl2" id="p-iplbl" style="display:none">📚 Infoprodutos</div>
+    <div id="p-infoprods"></div>
   </div>
   <div class="vis">👁 <span id="p-vis">0</span> visitas únicas</div>
 <div class="vis-online" id="vis-online" style="display:none">🟢 <span id="p-online">0</span> online agora</div>
@@ -359,6 +375,46 @@ input:checked+.isl:before{transform:translateX(18px)}
         <button class="btn by" onclick="addLink()">+ Adicionar</button>
       </div>
     </div>
+
+    <div class="card">
+      <div class="ct">📚 Infoprodutos <span style="font-size:11px;color:#bbb;font-weight:400">(planilhas, calculadoras, kits)</span></div>
+      <div id="adm-ip"></div>
+      <div class="iadd">
+        <div class="iadd-t">+ Adicionar infoproduto</div>
+        <div class="g2">
+          <div class="fld"><label>Título</label><input type="text" id="ip-title" placeholder="📊 Nome do produto"></div>
+          <div class="fld"><label>URL (Kiwify / Hotmart)</label><input type="url" id="ip-url" placeholder="https://..."></div>
+        </div>
+        <div class="fld"><label>Descrição curta</label><input type="text" id="ip-desc" placeholder="O que o cliente vai aprender/ganhar"></div>
+        <div class="g2">
+          <div class="fld"><label>Preço</label><input type="text" id="ip-price" placeholder="R$ 47,00 ou Grátis"></div>
+          <div class="fld"><label>Tipo</label>
+            <select id="ip-type" style="width:100%;padding:9px 11px;border:1.5px solid #e5e5e5;border-radius:8px;font-size:13px;background:#fafafa;color:#1a1a1a">
+              <option value="pago">💰 Pago</option>
+              <option value="gratis">🆓 Gratuito (isca)</option>
+            </select>
+          </div>
+        </div>
+        <div class="img-field">
+          <label>Imagem de capa</label>
+          <div class="img-wrap">
+            <div class="iph" id="ip-ph">📚</div>
+            <img class="iprev" id="ip-prev" src="" alt="">
+            <div class="iinfo"><div class="ifname" id="ip-fn">Nenhuma imagem</div><div class="ifsize" id="ip-fs"></div></div>
+          </div>
+          <div class="iactions">
+            <button type="button" class="iubtn" onclick="document.getElementById('ip-file').click()">📁 Escolher</button>
+            <button type="button" class="ilbtn" onclick="tUrl('ip')">🔗 URL</button>
+            <button type="button" class="icbtn" id="ip-clr" onclick="clrImg('ip')">✕</button>
+          </div>
+          <input type="file" id="ip-file" accept="image/*" onchange="hFile('ip',this)">
+          <input type="url" class="iurlinp" id="ip-urli" placeholder="https://...jpg" oninput="hUrl('ip',this.value)">
+          <input type="hidden" id="ip-val">
+        </div>
+        <button class="btn by" onclick="addInfoprod()">+ Adicionar</button>
+      </div>
+    </div>
+
     <div style="padding:0 0 28px">
   <button onclick="saveAll()" style="width:100%;padding:14px;background:#27ae60;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;transition:all .2s" onmouseover="this.style.background='#219a52'" onmouseout="this.style.background='#27ae60'">💾 Salvar alterações</button>
   <div style="text-align:center;font-size:11px;color:#bbb;margin-top:10px">Clique em salvar após fazer qualquer edição.</div>
@@ -405,6 +461,44 @@ input:checked+.isl:before{transform:translateX(18px)}
     <div class="mact">
       <button class="btn bw bsm" onclick="closeEditCL()">Cancelar</button>
       <button class="btn by bsm" onclick="saveEditCL()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="mbg" id="ipmodal">
+  <div class="modal">
+    <h3>✏️ Editar infoproduto</h3>
+    <div class="msec"><span class="mlbl">Título</span><input type="text" id="eip-title"></div>
+    <div class="msec"><span class="mlbl">URL</span><input type="url" id="eip-url"></div>
+    <div class="msec"><span class="mlbl">Descrição curta</span><input type="text" id="eip-desc"></div>
+    <div class="g2">
+      <div class="msec"><span class="mlbl">Preço</span><input type="text" id="eip-price" placeholder="R$ 47,00 ou Grátis"></div>
+      <div class="msec"><span class="mlbl">Tipo</span>
+        <select id="eip-type" style="width:100%;padding:9px 11px;border:1.5px solid #e5e5e5;border-radius:8px;font-size:13px;background:#fafafa;color:#1a1a1a">
+          <option value="pago">💰 Pago</option>
+          <option value="gratis">🆓 Gratuito</option>
+        </select>
+      </div>
+    </div>
+    <div class="msec">
+      <span class="mlbl">Imagem de capa</span>
+      <div class="img-wrap">
+        <div class="iph" id="eip-ph">📚</div>
+        <img class="iprev" id="eip-prev" src="" alt="">
+        <div class="iinfo"><div class="ifname" id="eip-fn">Nenhuma imagem</div><div class="ifsize" id="eip-fs"></div></div>
+      </div>
+      <div class="iactions">
+        <button type="button" class="iubtn" onclick="document.getElementById('eip-file').click()">📁 Escolher</button>
+        <button type="button" class="ilbtn" onclick="tUrl('eip')">🔗 URL</button>
+        <button type="button" class="icbtn" id="eip-clr" onclick="clrImg('eip')">✕</button>
+      </div>
+      <input type="file" id="eip-file" accept="image/*" onchange="hFile('eip',this)">
+      <input type="url" class="iurlinp" id="eip-urli" placeholder="https://...jpg" oninput="hUrl('eip',this.value)">
+      <input type="hidden" id="eip-val">
+    </div>
+    <div class="mact">
+      <button class="btn bw bsm" onclick="closeEditIP()">Cancelar</button>
+      <button class="btn by bsm" onclick="saveEditIP()">Salvar</button>
     </div>
   </div>
 </div>
@@ -505,6 +599,9 @@ function mergeWithLocal(cloudData){
   if(!cloudData.profile)cloudData.profile={};
   var cl=(cloudData.links||[]).length,ll=(local.links||[]).length;
   if(ll>cl){cloudData.links=JSON.parse(JSON.stringify(local.links));}
+  var cip=(cloudData.infoprodutos||[]).length,lip=(local.infoprodutos||[]).length;
+  if(lip>cip){cloudData.infoprodutos=JSON.parse(JSON.stringify(local.infoprodutos));}
+  if(!cloudData.infoprodutos)cloudData.infoprodutos=[];
   if(!cloudData.profile.avatar&&local.profile&&local.profile.avatar){cloudData.profile.avatar=local.profile.avatar;}
   if(!cloudData.profile.bgImage&&local.profile&&local.profile.bgImage){cloudData.profile.bgImage=local.profile.bgImage;}
   return cloudData;
@@ -594,7 +691,7 @@ function importBackup(input){
 }
 
 
-function dfl(){return{profile:{avatar:'',bgImage:'',bgOverlay:55,username:'@rodrigoalves.dicasdeobras',contactLabel:'📲 Contato & Comunidade',sectionLabel:'⚡ Produtos recomendados',bio:'🔨 Só ferramenta que eu uso de verdade 💰 Evite gastar errado na sua obra 👇 Clica e vê',urgency:'🔥 Ferramentas que EU uso na obra — sem enrolação',socials:{ig:'',yt:'',tt:'',fb:''}},contactLinks:[{id:1,title:'💬 Fale comigo no WhatsApp',sub:'Tire dúvidas sobre qualquer produto →',url:'https://wa.me/5531984968882',icon:'💬',style:'wpp',active:true},{id:2,title:'⚡ Não Pague Caro em Ferramenta',sub:'Entre no grupo de ofertas — é grátis →',url:'https://chat.whatsapp.com/ByEcbT2Pf1ODUEUAXCIkhx',icon:'⚡',style:'group',active:true}],links:[{id:1,title:'⚡ PARE DE DEIXAR PARAFUSO CAIR – USE ISSO',sub:'Ver na Shopee →',url:'https://s.shopee.com.br/5L7vf2I4F7',thumb:'',active:true,clicks:0,stars:0,sold:''},{id:2,title:'⚡ ALICATE CORTA TUDO (PARE DE ESTRAGAR FIO)',sub:'Ver na Shopee →',url:'https://s.shopee.com.br/5L7vWbpPMm',thumb:'',active:true,clicks:0,stars:0,sold:''},{id:3,title:'💰 ADITIVO QUE DEIXA O CONCRETO FORTE (SEM GASTAR MAIS)',sub:'Ver na Shopee →',url:'https://s.shopee.com.br/50V58KQayi',thumb:'',active:true,clicks:0,stars:0,sold:''},{id:4,title:'💰 PARE DE COMPRAR BROCA TODA HORA',sub:'Ver na Shopee →',url:'https://s.shopee.com.br/50V58TRUrl',thumb:'',active:true,clicks:0,stars:0,sold:''}],stats:{visitors:[],totalClicks:0,daily:{}},password:PASS};}
+function dfl(){return{profile:{avatar:'',bgImage:'',bgOverlay:55,username:'@rodrigoalves.dicasdeobras',contactLabel:'📲 Contato & Comunidade',sectionLabel:'⚡ Produtos recomendados',bio:'🔨 Só ferramenta que eu uso de verdade 💰 Evite gastar errado na sua obra 👇 Clica e vê',urgency:'🔥 Ferramentas que EU uso na obra — sem enrolação',socials:{ig:'',yt:'',tt:'',fb:''}},contactLinks:[{id:1,title:'💬 Fale comigo no WhatsApp',sub:'Tire dúvidas sobre qualquer produto →',url:'https://wa.me/5531984968882',icon:'💬',style:'wpp',active:true},{id:2,title:'⚡ Não Pague Caro em Ferramenta',sub:'Entre no grupo de ofertas — é grátis →',url:'https://chat.whatsapp.com/ByEcbT2Pf1ODUEUAXCIkhx',icon:'⚡',style:'group',active:true}],links:[{id:1,title:'⚡ PARE DE DEIXAR PARAFUSO CAIR – USE ISSO',sub:'Ver na Shopee →',url:'https://s.shopee.com.br/5L7vf2I4F7',thumb:'',active:true,clicks:0,stars:0,sold:''},{id:2,title:'⚡ ALICATE CORTA TUDO (PARE DE ESTRAGAR FIO)',sub:'Ver na Shopee →',url:'https://s.shopee.com.br/5L7vWbpPMm',thumb:'',active:true,clicks:0,stars:0,sold:''},{id:3,title:'💰 ADITIVO QUE DEIXA O CONCRETO FORTE (SEM GASTAR MAIS)',sub:'Ver na Shopee →',url:'https://s.shopee.com.br/50V58KQayi',thumb:'',active:true,clicks:0,stars:0,sold:''},{id:4,title:'💰 PARE DE COMPRAR BROCA TODA HORA',sub:'Ver na Shopee →',url:'https://s.shopee.com.br/50V58TRUrl',thumb:'',active:true,clicks:0,stars:0,sold:''}],infoprodutos:[],stats:{visitors:[],totalClicks:0,daily:{}},password:PASS};}
 function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 function hFile(p,inp){var f=inp.files[0];if(!f)return;var mx=(p==='bg')?3:2;if(f.size>mx*1024*1024){alert('Imagem muito grande. Máx '+mx+'MB.');return;}var r=new FileReader();r.onload=function(ev){var v=ev.target.result;document.getElementById(p+'-val').value=v;showPrev(p,v,f.name,fmt(f.size));if(p==='ap'||p==='bg')autoSaveImg(p,v);};r.readAsDataURL(f);}
@@ -787,6 +884,28 @@ function renderPub(){
       return'<div class="lcard" onclick="handleLinkClick(event,'+ri+',\''+esc(l.url)+'\')" style="cursor:pointer">'+th+'<div class="linfo"><div class="ltitle">'+esc(l.title)+'</div>'+ratingRow(l)+(cleanSub?'<div class="lsub">'+esc(cleanSub)+'</div>':'')+ctaHtml+'</div></div>';
     }).join('');
   }
+
+  // Infoprodutos section
+  var ips=d.infoprodutos||[];
+  var ipsActive=ips.filter(function(ip){return ip.active;});
+  var iplbl=document.getElementById('p-iplbl');
+  if(iplbl)iplbl.style.display=ipsActive.length?'block':'none';
+  var ipw=document.getElementById('p-infoprods');
+  if(ipw){
+    ipw.innerHTML=ipsActive.map(function(ip){
+      var ri=ips.indexOf(ip);
+      var th=ip.thumb?'<img class="ip-thumb" src="'+esc(ip.thumb)+'" onerror="this.style.display=\'none\'">':'<div class="ip-thumb-ph">📚</div>';
+      var isFree=ip.type==='gratis';
+      var priceHtml=isFree?'<span class="ip-price free">GRÁTIS</span>':'<span class="ip-price">'+esc(ip.price||'')+'</span>';
+      var ctaTxt=isFree?'Baixar grátis →':'Quero esse →';
+      return'<div class="ip-card" onclick="handleIPClick(event,'+ri+',\''+esc(ip.url)+'\')">'+th+
+        '<div class="ip-info">'+
+          '<div class="ip-title">'+esc(ip.title)+'</div>'+
+          (ip.desc?'<div class="ip-desc">'+esc(ip.desc)+'</div>':'')+
+          '<div class="ip-footer">'+priceHtml+'<span class="ip-cta">'+ctaTxt+'</span></div>'+
+        '</div></div>';
+    }).join('');
+  }
 }
 
 var _currentFilter='today';
@@ -890,7 +1009,7 @@ function renderAdm(){
   }var d=getData(),p=d.profile;
   document.getElementById('sa').textContent=d.links.filter(function(l){return l.active;}).length;
   var _apc=document.getElementById('ap-cleared');if(_apc)_apc.value='0';
-  renderCloudBackups();
+  renderCloudBackups();renderInfoprodList();
   renderAnalytics();document.getElementById('f-user').value=p.username||'';if(document.getElementById('f-contactlbl'))document.getElementById('f-contactlbl').value=p.contactLabel||'📲 Contato & Comunidade';document.getElementById('f-seclbl').value=p.sectionLabel||'⚡ Produtos recomendados';document.getElementById('f-bio').value=p.bio||'';document.getElementById('f-urg').value=p.urgency||'';document.getElementById('f-ig').value=(p.socials&&p.socials.ig)||'';document.getElementById('f-yt').value=(p.socials&&p.socials.yt)||'';document.getElementById('f-tt').value=(p.socials&&p.socials.tt)||'';document.getElementById('f-fb').value=(p.socials&&p.socials.fb)||'';clrImg('ap');if(p.avatar){showPrev('ap',p.avatar,p.avatar.startsWith('data:')?'Foto carregada':'URL','');document.getElementById('ap-val').value=p.avatar;}clrImg('bg');if(p.bgImage){showPrev('bg',p.bgImage,p.bgImage.startsWith('data:')?'Imagem carregada':'URL','');document.getElementById('bg-val').value=p.bgImage;}var ov=(p.bgOverlay!==undefined)?p.bgOverlay:55;document.getElementById('bg-ov').value=ov;document.getElementById('bg-ov-v').textContent=ov+'%';renderList();renderContactList();}
 function renderList(){var d=getData();document.getElementById('adm-links').innerHTML=d.links.map(function(l,i){var th=l.thumb?'<img class="ithumb" src="'+esc(l.thumb)+'" onerror="this.style.display=\'none\'">':'<div class="ithumb-ph">📷</div>';var rp=(l.stars>0||l.sold)?'<div class="irp">⭐ '+(l.stars>0?l.stars:'-')+' '+(l.sold?'| '+l.sold+' vendidos':'')+'</div>':'';return'<div class="litem '+(l.active?'':'off')+'" draggable="true" ondragstart="ds(event,'+i+')" ondragover="dov(event,'+i+')" ondragleave="dl(event)" ondrop="ddp(event,'+i+')" ondragend="de(event)"><div class="itop"><span class="ihandle">⠿</span><span class="iname">'+esc(l.title)+'</span><span class="iclk">👆 '+(l.clicks||0)+'</span><label class="itog"><input type="checkbox" '+(l.active?'checked':'')+' onchange="togL('+i+',this.checked)"><span class="isl"></span></label></div><div class="ibot">'+th+'<div style="flex:1;min-width:0"><div class="iurl2">'+esc(l.url)+'</div>'+(l.sub?'<div class="isub">'+esc(l.sub)+'</div>':'')+rp+'</div><div class="litem-actions" style="display:flex;gap:5px;flex-shrink:0;opacity:1"><button class="btn bw bsm" onclick="moveLink('+i+',-1)" title="Subir" style="font-size:14px;padding:4px 7px">▲</button><button class="btn bw bsm" onclick="moveLink('+i+',1)" title="Descer" style="font-size:14px;padding:4px 7px">▼</button><button class="btn bw bsm" onclick="openEdit('+i+')">✏️</button><button class="btn br bsm" onclick="delLink('+i+')">🗑</button></div></div></div>';}).join('');}
 
@@ -1056,6 +1175,7 @@ function saveEdit(){
 }
 document.getElementById('emodal').addEventListener('click',function(ev){if(ev.target===this)closeEdit();});
 document.getElementById('clmodal').addEventListener('click',function(ev){if(ev.target===this)closeEditCL();});
+document.getElementById('ipmodal').addEventListener('click',function(ev){if(ev.target===this)closeEditIP();});
 
 // ── REALTIME ONLINE COUNTER ────────────────────────────────
 var _onlineChannel = null;
@@ -1329,6 +1449,99 @@ async function fetchOnlineCount(){
     var badge=document.getElementById('vis-online');if(badge)badge.style.display=count>0?'block':'none';
     var admEl=document.getElementById('s-online');if(admEl)admEl.textContent=count;
   }catch(e){}
+}
+
+// ── INFOPRODUTOS ──────────────────────────────────────────
+function handleIPClick(e,idx,url){
+  e.preventDefault();
+  var opened=false;
+  var d=getData();
+  if(d.infoprodutos&&d.infoprodutos[idx]){
+    d.infoprodutos[idx].clicks=(d.infoprodutos[idx].clicks||0)+1;
+    _cache=d;try{localStorage.setItem('rd',JSON.stringify(d));}catch(err){}
+    scheduleSync();
+  }
+  window.open(url,'_blank');
+  opened=true;
+  setTimeout(function(){if(!opened)window.open(url,'_blank');},800);
+}
+
+function renderInfoprodList(){
+  var d=getData();
+  var ips=d.infoprodutos||[];
+  var el=document.getElementById('adm-ip');if(!el)return;
+  el.innerHTML=ips.map(function(ip,i){
+    var th=ip.thumb?'<img class="ithumb" src="'+esc(ip.thumb)+'" onerror="this.style.display=\'none\'">':'<div class="ithumb-ph">📚</div>';
+    var typeLbl=ip.type==='gratis'?'🆓 Grátis':'💰 Pago';
+    return'<div class="litem '+(ip.active?'':'off')+'">'+
+      '<div class="itop"><span class="iname">'+esc(ip.title)+'</span>'+
+        '<span class="iclk">👆 '+(ip.clicks||0)+'</span>'+
+        '<label class="itog"><input type="checkbox" '+(ip.active?'checked':'')+' onchange="togInfoprod('+i+',this.checked)"><span class="isl"></span></label>'+
+      '</div>'+
+      '<div class="ibot">'+th+
+        '<div style="flex:1;min-width:0">'+
+          '<div class="iurl2">'+esc(ip.url||'')+'</div>'+
+          '<div class="isub">'+(ip.price||typeLbl)+' — '+typeLbl+'</div>'+
+        '</div>'+
+        '<div style="display:flex;gap:5px;flex-shrink:0">'+
+          '<button class="btn bw bsm" onclick="openEditIP('+i+')">✏️</button>'+
+          '<button class="btn br bsm" onclick="delInfoprod('+i+')">🗑</button>'+
+        '</div>'+
+      '</div></div>';
+  }).join('');
+}
+
+function addInfoprod(){
+  var title=document.getElementById('ip-title').value.trim();
+  var url=document.getElementById('ip-url').value.trim();
+  if(!title||!url){alert('Título e URL são obrigatórios');return;}
+  var newIP={id:Date.now(),title:title,url:url,desc:document.getElementById('ip-desc').value.trim(),price:document.getElementById('ip-price').value.trim(),type:document.getElementById('ip-type').value,thumb:document.getElementById('ip-val').value,active:true,clicks:0};
+  ['ip-title','ip-url','ip-desc','ip-price'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('ip-type').value='pago';clrImg('ip');
+  saveFreshWithAction(function(fresh){
+    if(!fresh.infoprodutos)fresh.infoprodutos=[];
+    fresh.infoprodutos.push(newIP);return fresh;
+  },function(){renderInfoprodList();renderPub();});
+}
+
+function delInfoprod(idx){
+  if(!confirm('Remover este infoproduto?'))return;
+  saveFreshWithAction(function(fresh){
+    if(!fresh.infoprodutos)fresh.infoprodutos=[];
+    fresh.infoprodutos.splice(idx,1);return fresh;
+  },function(){renderInfoprodList();renderPub();});
+}
+
+function togInfoprod(idx,val){
+  saveFreshWithAction(function(fresh){
+    if(!fresh.infoprodutos)fresh.infoprodutos=[];
+    if(fresh.infoprodutos[idx])fresh.infoprodutos[idx].active=val;return fresh;
+  },function(){renderInfoprodList();renderPub();});
+}
+
+var editIPIdx=null;
+function openEditIP(idx){
+  editIPIdx=idx;
+  var d=getData();var ip=(d.infoprodutos||[])[idx];if(!ip)return;
+  document.getElementById('eip-title').value=ip.title||'';
+  document.getElementById('eip-url').value=ip.url||'';
+  document.getElementById('eip-desc').value=ip.desc||'';
+  document.getElementById('eip-price').value=ip.price||'';
+  document.getElementById('eip-type').value=ip.type||'pago';
+  clrImg('eip');
+  if(ip.thumb)showPrev('eip',ip.thumb,ip.thumb.startsWith('data:')?'Imagem carregada':'URL','');
+  document.getElementById('eip-val').value=ip.thumb||'';
+  document.getElementById('ipmodal').classList.add('open');
+}
+function closeEditIP(){document.getElementById('ipmodal').classList.remove('open');editIPIdx=null;}
+function saveEditIP(){
+  if(editIPIdx===null)return;
+  var updates={title:document.getElementById('eip-title').value.trim(),url:document.getElementById('eip-url').value.trim(),desc:document.getElementById('eip-desc').value.trim(),price:document.getElementById('eip-price').value.trim(),type:document.getElementById('eip-type').value,thumb:document.getElementById('eip-val').value};
+  var idx=editIPIdx;closeEditIP();
+  saveFreshWithAction(function(fresh){
+    if(!fresh.infoprodutos)fresh.infoprodutos=[];
+    if(fresh.infoprodutos[idx])fresh.infoprodutos[idx]=Object.assign({},fresh.infoprodutos[idx],updates);return fresh;
+  },function(){renderInfoprodList();renderPub();});
 }
 
 // INIT
